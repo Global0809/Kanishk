@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AICANFEEL x KANISHK MEHTA | Premium Pitch</title>
+    
+    <!-- Three.js for 3D Rendering -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+    <!-- Premium Agency Fonts: Montserrat for imposing headers, Inter for ultra-clean readability -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=Montserrat:wght@300;400;700;900&family=Space+Mono&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-deep: #030504;
+            --neon-green: #00FF41;
+            --dark-green: #003B00;
+            --text-main: #E2E8F0;
+            --text-muted: #81A1C1;
+            --card-bg: rgba(10, 15, 12, 0.4);
+            --card-border: rgba(0, 255, 65, 0.15);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            cursor: none; /* Hide default cursor for custom one */
+        }
+
+        body {
+            background-color: var(--bg-deep);
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Custom Cursor */
+        #cursor, #cursor-trail {
+            position: fixed;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+            z-index: 9999;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        #cursor {
+            width: 8px;
+            height: 8px;
+            background: var(--neon-green);
+            box-shadow: 0 0 10px var(--neon-green);
+            transition: width 0.2s, height 0.2s;
+        }
+
+        #cursor-trail {
+            width: 40px;
+            height: 40px;
+            border: 1px solid rgba(0, 255, 65, 0.3);
+            transition: width 0.3s, height 0.3s, transform 0.1s ease-out;
+        }
+
+        #webgl-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        /* Overlay gradient to ensure text readability */
+        .vignette {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: radial-gradient(circle at center, transparent 0%, var(--bg-deep) 120%);
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        main {
+            position: relative;
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        section {
+            min-height: 100vh;
+            width: 100%;
+            max-width: 1400px;
+            padding: 4rem 2rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        h1, h2, h3, .price {
+            font-family: 'Montserrat', sans-serif;
+            text-transform: uppercase;
+        }
+
+        .hero {
+            align-items: center;
+            text-align: center;
+        }
+
+        .agency-tag {
+            font-family: 'Space Mono', monospace;
+            color: var(--neon-green);
+            letter-spacing: 4px;
+            font-size: 1rem;
+            margin-bottom: 2rem;
+            display: inline-block;
+            border: 1px solid var(--card-border);
+            padding: 0.5rem 1.5rem;
+            background: rgba(0, 255, 65, 0.05);
+            border-radius: 2px;
+            text-shadow: 0 0 8px rgba(0, 255, 65, 0.4);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .client-name {
+            font-size: clamp(3rem, 8vw, 6rem);
+            font-weight: 900;
+            line-height: 1.1;
+            color: #ffffff;
+            letter-spacing: -2px;
+            margin-bottom: 1rem;
+            position: relative;
+        }
+
+        /* Glitch Effect on Hover */
+        .client-name:hover {
+            animation: glitch-skew 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) both infinite;
+            color: var(--neon-green);
+        }
+
+        .hero-desc {
+            font-size: 1.5rem;
+            color: var(--text-muted);
+            max-width: 800px;
+            margin-top: 2rem;
+            font-weight: 300;
+            line-height: 1.8;
+        }
+
+        .grid-layout {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 3rem;
+            width: 100%;
+            margin-top: 4rem;
+        }
+
+        .premium-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 8px;
+            padding: 3rem 2.5rem;
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), border-color 0.3s;
+        }
+
+        /* The Magic Hover Glow Effect */
+        .premium-card::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(
+                800px circle at var(--mouse-x) var(--mouse-y), 
+                rgba(0, 255, 65, 0.15),
+                transparent 40%
+            );
+            z-index: 0;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .premium-card:hover::before {
+            opacity: 1;
+        }
+
+        .premium-card:hover {
+            transform: translateY(-10px);
+            border-color: rgba(0, 255, 65, 0.5);
+            box-shadow: 0 10px 40px rgba(0, 255, 65, 0.1);
+        }
+
+        .premium-card > * {
+            position: relative;
+            z-index: 1;
+        }
+
+        .card-icon {
+            font-size: 1.2rem;
+            color: var(--neon-green);
+            margin-bottom: 1.5rem;
+            font-family: 'Space Mono', monospace;
+            font-weight: bold;
+            letter-spacing: 2px;
+        }
+
+        .premium-card h3 {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 1rem;
+            letter-spacing: 1px;
+        }
+
+        .premium-card p {
+            font-size: 1.05rem;
+            color: var(--text-muted);
+            line-height: 1.6;
+            font-weight: 300;
+        }
+
+        .highlight {
+            color: var(--neon-green);
+            font-weight: 500;
+            text-shadow: 0 0 10px rgba(0, 255, 65, 0.3);
+        }
+
+        .investment-section {
+            align-items: center;
+            text-align: center;
+        }
+
+        .price-container {
+            position: relative;
+            margin: 3rem 0;
+            padding: 4rem;
+            background: linear-gradient(145deg, rgba(10,15,12,0.8) 0%, rgba(0,20,0,0.6) 100%);
+            border: 1px solid rgba(0, 255, 65, 0.3);
+            border-radius: 12px;
+            box-shadow: inset 0 0 50px rgba(0,0,0,0.8), 0 0 30px rgba(0, 255, 65, 0.05);
+        }
+
+        .price {
+            font-size: clamp(4rem, 10vw, 8rem);
+            color: var(--neon-green);
+            text-shadow: 0 0 30px rgba(0, 255, 65, 0.4);
+            line-height: 1;
+        }
+
+        .price-label {
+            font-family: 'Space Mono', monospace;
+            color: var(--text-muted);
+            letter-spacing: 2px;
+            margin-top: 1rem;
+        }
+
+        .social-proof {
+            display: inline-flex;
+            align-items: center;
+            gap: 15px;
+            margin-top: 3rem;
+            padding: 1rem 2rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50px;
+            background: rgba(255,255,255,0.02);
+            backdrop-filter: blur(10px);
+        }
+
+        .followers {
+            font-family: 'Space Mono', monospace;
+            font-size: 1.5rem;
+            color: #fff;
+            font-weight: 700;
+        }
+
+        /* Reveal Animation Classes */
+        .reveal {
+            opacity: 0;
+            transform: translateY(40px);
+            transition: all 1s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        @keyframes glitch-skew {
+            0% { transform: skew(0deg); }
+            20% { transform: skew(-10deg); text-shadow: -2px 0 var(--neon-green), 2px 0 red; }
+            40% { transform: skew(10deg); text-shadow: 2px 0 var(--neon-green), -2px 0 red; }
+            60% { transform: skew(0deg); text-shadow: none; }
+            80% { transform: skew(5deg); text-shadow: -1px 0 var(--neon-green); }
+            100% { transform: skew(0deg); }
+        }
+
+        @media (max-width: 768px) {
+            .premium-card { padding: 2rem 1.5rem; }
+            .grid-layout { gap: 1.5rem; }
+            #cursor, #cursor-trail { display: none; } /* Disable custom cursor on mobile */
+            body { cursor: auto; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Custom Cursor Elements -->
+    <div id="cursor"></div>
+    <div id="cursor-trail"></div>
+
+    <!-- Hyper-Reactive Physics Canvas -->
+    <canvas id="webgl-canvas"></canvas>
+    <div class="vignette"></div>
+
+    <main>
+        <!-- Hero Section -->
+        <section class="hero reveal">
+            <div class="agency-tag">AICANFEEL // VIRTUAL PRODUCTION DOSSIER</div>
+            <h2 style="color: var(--text-muted); font-family: 'Space Mono'; letter-spacing: 4px; margin-bottom: 1rem; font-size: 1rem;">EXCLUSIVE ARCHITECTURAL PROPOSAL FOR</h2>
+            <h1 class="client-name">KANISHK MEHTA</h1>
+            <p class="hero-desc">We are engineering a paradigm shift in runway presentation. A flawless convergence of <span class="highlight">advanced CGI, fluid VFX, and generative AI</span> to transcend the boundaries of physical reality.</p>
+        </section>
+
+        <!-- Vision Section -->
+        <section class="reveal">
+            <h2 style="font-size: 2.5rem; text-align: center; margin-bottom: 2rem;">The Architectural Vision</h2>
+            <div class="grid-layout">
+                
+                <div class="premium-card">
+                    <div class="card-icon">[01] // THE SIMULATION</div>
+                    <h3>22-Minute Masterpiece</h3>
+                    <p>Transcending physical venue limitations, we are architecting a bespoke 22-minute virtual runway from the ground up. Utilizing high-fidelity cloth simulation, dynamic metahuman rigging, and extreme photorealism, every garment is immortalized with breathtaking kinetic accuracy.</p>
+                </div>
+
+                <div class="premium-card">
+                    <div class="card-icon">[02] // SPATIAL DESIGN</div>
+                    <h3>Celestial Environment</h3>
+                    <p>Your collection will not just be worn; it will orbit. We are constructing a hyper-reactive, deep-space environment where models traverse nebulas and float among celestial bodies, illuminated by the awe-inspiring, volumetric lighting of supernovas.</p>
+                </div>
+
+                <div class="premium-card">
+                    <div class="card-icon">[03] // SPONSORS</div>
+                    <h3>Diegetic Brand Architecture</h3>
+                    <p>Sponsor visibility reimagined. Discarding flat overlays, we seamlessly embed brand identities into the very fabric of the 3D universe—sculpted as holographic constellations, monolithic neon structures, and luminescent orbital elements.</p>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- Investment Section -->
+        <section class="investment-section reveal">
+            <h2>Resource Allocation & Infrastructure</h2>
+            
+            <div class="price-container">
+                <div class="price">$4,000</div>
+                <div class="price-label">COMPLETE PROPRIETARY PIPELINE</div>
+            </div>
+
+            <p style="max-width: 700px; color: var(--text-muted); font-size: 1.15rem; margin: 0 auto; line-height: 1.8;">
+                A comprehensive end-to-end production ecosystem. This encompasses meticulous concept art, volumetric 3D environment modeling, advanced character rigging, intensive CGI rendering, VFX compositing, and final AI upscaling for a flawless broadcast.
+            </p>
+
+            <div class="social-proof">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--neon-green);"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
+                <span style="color: var(--text-muted); font-family: 'Space Mono';">TRUSTED BY A COMMUNITY OF</span>
+                <span class="followers">260,000+</span>
+                <span style="color: var(--text-muted); font-family: 'Space Mono';">VISIONARIES</span>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // Custom Cursor Logic
+        const cursor = document.getElementById('cursor');
+        const cursorTrail = document.getElementById('cursor-trail');
+        let mouseX = 0;
+        let mouseY = 0;
+        let trailX = 0;
+        let trailY = 0;
+
+        window.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+            
+            cursor.style.left = mouseX + 'px';
+            cursor.style.top = mouseY + 'px';
+        });
+
+        // Smooth trailing effect
+        function animateCursor() {
+            let dx = mouseX - trailX;
+            let dy = mouseY - trailY;
+            
+            trailX += dx * 0.15; // Speed of trail
+            trailY += dy * 0.15;
+            
+            cursorTrail.style.left = trailX + 'px';
+            cursorTrail.style.top = trailY + 'px';
+            
+            requestAnimationFrame(animateCursor);
+        }
+        animateCursor();
+
+        // Interactive Hover effect for elements
+        const interactables = document.querySelectorAll('h1, .premium-card, .agency-tag');
+        interactables.forEach(el => {
+            el.addEventListener('mouseenter', () => {
+                cursor.style.transform = 'translate(-50%, -50%) scale(1.5)';
+                cursorTrail.style.transform = 'translate(-50%, -50%) scale(1.5)';
+                cursorTrail.style.borderColor = 'var(--neon-green)';
+            });
+            el.addEventListener('mouseleave', () => {
+                cursor.style.transform = 'translate(-50%, -50%) scale(1)';
+                cursorTrail.style.transform = 'translate(-50%, -50%) scale(1)';
+                cursorTrail.style.borderColor = 'rgba(0, 255, 65, 0.3)';
+            });
+        });
+
+        // Premium Card Inner Glow (Fluent Design)
+        document.querySelectorAll('.premium-card').forEach(card => {
+            card.addEventListener('mousemove', e => {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                card.style.setProperty('--mouse-x', `${x}px`);
+                card.style.setProperty('--mouse-y', `${y}px`);
+            });
+        });
+
+        // Scroll Reveal Animations
+        function reveal() {
+            var reveals = document.querySelectorAll(".reveal");
+            for (var i = 0; i < reveals.length; i++) {
+                var windowHeight = window.innerHeight;
+                var elementTop = reveals[i].getBoundingClientRect().top;
+                var elementVisible = 100;
+                if (elementTop < windowHeight - elementVisible) {
+                    reveals[i].classList.add("active");
+                }
+            }
+        }
+        window.addEventListener("scroll", reveal);
+        reveal(); // Trigger on load
+
+        // ==========================================
+        // THREE.JS MATRIX SOLAR SYSTEM ENGINE
+        // ==========================================
+        const canvas = document.getElementById('webgl-canvas');
+        
+        // Scene Setup
+        const scene = new THREE.Scene();
+        scene.fog = new THREE.FogExp2(0x030504, 0.025); // Deep space fog
+        
+        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.z = 40;
+        camera.position.y = 15;
+        camera.lookAt(0, 0, 0);
+
+        const renderer = new THREE.WebGLRenderer({ 
+            canvas: canvas, 
+            antialias: true, 
+            alpha: true 
+        });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+        // Handle Window Resize
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        const solarSystem = new THREE.Group();
+        scene.add(solarSystem);
+
+        // Core Materials (Matrix Aesthetic)
+        const matrixLineMaterial = new THREE.LineBasicMaterial({
+            color: 0x00FF41,
+            transparent: true,
+            opacity: 0.25,
+            blending: THREE.AdditiveBlending
+        });
+
+        const matrixNodeMaterial = new THREE.PointsMaterial({
+            color: 0x00FF41,
+            size: 0.15,
+            transparent: true,
+            opacity: 0.9,
+            blending: THREE.AdditiveBlending
+        });
+
+        // 1. Central Core (The "Sun")
+        const coreGeo = new THREE.SphereGeometry(3, 32, 32);
+        const coreWireframe = new THREE.LineSegments(
+            new THREE.WireframeGeometry(coreGeo),
+            new THREE.LineBasicMaterial({ color: 0x00FF41, transparent: true, opacity: 0.4, blending: THREE.AdditiveBlending })
+        );
+        solarSystem.add(coreWireframe);
+
+        const corePoints = new THREE.Points(coreGeo, matrixNodeMaterial);
+        solarSystem.add(corePoints);
+
+        // 2. Orbital Rings & Planetary Nodes
+        const numOrbits = 15;
+        const planets = [];
+
+        for (let i = 1; i <= numOrbits; i++) {
+            const radius = i * 3.5;
+            
+            // Orbit Ring Geometry
+            const orbitGeo = new THREE.BufferGeometry();
+            const orbitPts = [];
+            const segments = 128; // high res circles
+            for (let j = 0; j <= segments; j++) {
+                const theta = (j / segments) * Math.PI * 2;
+                orbitPts.push(new THREE.Vector3(Math.cos(theta) * radius, 0, Math.sin(theta) * radius));
+            }
+            orbitGeo.setFromPoints(orbitPts);
+            
+            const orbitRing = new THREE.Line(orbitGeo, matrixLineMaterial);
+            
+            // Randomize orbit tilt for chaotic matrix feel
+            const tiltX = (Math.random() - 0.5) * 1.5;
+            const tiltY = (Math.random() - 0.5) * 1.5;
+            const tiltZ = (Math.random() - 0.5) * 1.5;
+            
+            orbitRing.rotation.set(tiltX, tiltY, tiltZ);
+            solarSystem.add(orbitRing);
+
+            // Planetary Node (Data Packet)
+            const planetGeo = new THREE.OctahedronGeometry(0.3 + Math.random() * 0.7, 0);
+            const planet = new THREE.LineSegments(
+                new THREE.WireframeGeometry(planetGeo),
+                new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.8, blending: THREE.AdditiveBlending })
+            );
+            
+            // Store orbital data inside the object
+            planet.userData = {
+                angle: Math.random() * Math.PI * 2,
+                speed: 0.001 + Math.random() * 0.004,
+                radius: radius,
+                orbitEuler: new THREE.Euler(tiltX, tiltY, tiltZ)
+            };
+            
+            solarSystem.add(planet);
+            planets.push(planet);
+        }
+
+        // 3. Background Data Particles (Dust)
+        const dustGeo = new THREE.BufferGeometry();
+        const dustPos = [];
+        for(let i=0; i<2000; i++) {
+            dustPos.push(
+                (Math.random() - 0.5) * 150,
+                (Math.random() - 0.5) * 150,
+                (Math.random() - 0.5) * 150
+            );
+        }
+        dustGeo.setAttribute('position', new THREE.Float32BufferAttribute(dustPos, 3));
+        const dustParticles = new THREE.Points(dustGeo, new THREE.PointsMaterial({
+            color: 0x003B00,
+            size: 0.1,
+            transparent: true,
+            opacity: 0.6,
+            blending: THREE.AdditiveBlending
+        }));
+        scene.add(dustParticles);
+
+        // Scroll Physics Variables
+        let scrollPercent = 0;
+        window.addEventListener('scroll', () => {
+            const scrollTop = window.scrollY || document.documentElement.scrollTop;
+            const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+            scrollPercent = Math.max(0, Math.min(1, scrollTop / maxScroll)); // Clamp 0 to 1
+        });
+
+        // Animation Loop
+        const clock = new THREE.Clock();
+        
+        function animateLoop() {
+            requestAnimationFrame(animateLoop);
+            const time = clock.getElapsedTime();
+
+            // 1. Scroll Reactivity (Dive into the solar system)
+            // As we scroll down, rotate the system and push the camera in
+            const targetRotX = scrollPercent * Math.PI * 0.4; // Tilt slightly up
+            const targetRotY = scrollPercent * Math.PI * 1.5; // Spin almost full circle
+            
+            solarSystem.rotation.x += (targetRotX - solarSystem.rotation.x) * 0.05;
+            solarSystem.rotation.y += (targetRotY - solarSystem.rotation.y) * 0.05;
+            
+            // Dramatic camera zoom based on scroll
+            const targetCamZ = 40 - (scrollPercent * 30); // Fly towards the core
+            const targetCamY = 15 - (scrollPercent * 10); // Lower down towards the plane
+            
+            camera.position.z += (targetCamZ - camera.position.z) * 0.05;
+            camera.position.y += (targetCamY - camera.position.y) * 0.05;
+
+            // 2. Mouse Parallax Reactivity
+            if (mouseX !== 0 && mouseY !== 0) {
+                const normMouseX = (mouseX / window.innerWidth) * 2 - 1;
+                const normMouseY = -(mouseY / window.innerHeight) * 2 + 1;
+
+                camera.position.x += (normMouseX * 5 - camera.position.x) * 0.05;
+                // Add slight mouse Y offset on top of the scroll-based Y
+                camera.position.y += ((targetCamY + normMouseY * 2) - camera.position.y) * 0.05;
+            }
+            
+            camera.lookAt(0, 0, 0);
+
+            // 3. Orbital Animations
+            coreWireframe.rotation.y = time * 0.2;
+            coreWireframe.rotation.x = time * 0.1;
+            corePoints.rotation.y = -time * 0.15;
+
+            dustParticles.rotation.y = time * 0.02;
+
+            planets.forEach(p => {
+                p.userData.angle += p.userData.speed;
+                
+                // Calculate flat orbit position
+                const x = Math.cos(p.userData.angle) * p.userData.radius;
+                const z = Math.sin(p.userData.angle) * p.userData.radius;
+                
+                // Apply the orbit's 3D tilt to the planet's coordinates
+                const pos = new THREE.Vector3(x, 0, z);
+                pos.applyEuler(p.userData.orbitEuler);
+                
+                p.position.copy(pos);
+                
+                // Spin the planet itself
+                p.rotation.x += 0.02;
+                p.rotation.y += 0.03;
+            });
+
+            renderer.render(scene, camera);
+        }
+
+        // Start Engine
+        window.onload = function() {
+            animateLoop();
+        };
+
+    </script>
+</body>
+</html>
